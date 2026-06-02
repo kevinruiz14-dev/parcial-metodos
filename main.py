@@ -16,7 +16,6 @@ def ingresar_datos():
             break
         except ValueError:
             print("  ⚠ Ingresa un número entero.")
-
     t_vals, y_vals = [], []
     for i in range(n):
         while True:
@@ -74,4 +73,31 @@ def menu():
     print("  [3] Regresión Exponencial")
     print("  [0] Salir")
     print("─" * 40)
-    return inpu
+    return input("  Elige una opción: ").strip()
+
+def main():
+    t_vals, y_vals = None, None
+    while True:
+        opcion = menu()
+        if opcion == "0":
+            print("\n  ¡Hasta luego!\n")
+            break
+        if opcion not in ("1", "2", "3"):
+            print("  ⚠ Opción inválida.")
+            continue
+        if t_vals is not None:
+            reusar = input("\n  ¿Usar los mismos datos? (s/n): ").strip().lower()
+            if reusar != "s":
+                t_vals, y_vals = ingresar_datos()
+        else:
+            t_vals, y_vals = ingresar_datos()
+        if opcion == "1":
+            ejecutar(lineal, t_vals, y_vals)
+        elif opcion == "2":
+            ejecutar(cuadratica, t_vals, y_vals)
+        elif opcion == "3":
+            ejecutar(exponencial, t_vals, y_vals)
+        input("\n  Presiona Enter para continuar...")
+
+if __name__ == "__main__":
+    main()
