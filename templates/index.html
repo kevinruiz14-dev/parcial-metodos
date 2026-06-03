@@ -26,6 +26,11 @@
         .tipos { display: flex; gap: 10px; margin-bottom: 15px; }
         .tipo-btn { flex: 1; padding: 10px; border: 2px solid #1a237e; background: white; color: #1a237e; border-radius: 6px; cursor: pointer; font-weight: bold; }
         .tipo-btn.activo { background: #1a237e; color: white; }
+        .tabla-regresion { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 15px; font-size: 14px; }
+        .tabla-regresion th, .tabla-regresion td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        .tabla-regresion th { background-color: #1a237e; color: white; }
+        .tabla-regresion tr:nth-child(even) { background-color: #f2f2f2; }
+        .tabla-regresion .totales { font-weight: bold; background-color: #e8eaf6; }
     </style>
 </head>
 <body>
@@ -35,41 +40,41 @@
     </header>
 
     <div class="container">
+        <!-- Ingreso de datos -->
+        <div class="card">
+            <h2>1. Ingresa los datos</h2>
+            <div id="datos">
+                <div class="fila-dato">
+                    <input type="number" step="any" placeholder="X" class="x-input">
+                    <input type="number" step="any" placeholder="Y" class="y-input">
+                </div>
+                <div class="fila-dato">
+                    <input type="number" step="any" placeholder="X" class="x-input">
+                    <input type="number" step="any" placeholder="Y" class="y-input">
+                </div>
+            </div>
+            <button class="btn-agregar" onclick="agregarFila()">+ Agregar fila</button>
+
+            <label>Valor de X para proyectar:</label>
+            <input type="number" step="any" id="x_proyectar" placeholder="Ej: 6">
+        </div>
+
         <!-- Tipo de regresión -->
         <div class="card">
-            <h2>1. Selecciona el tipo de regresión</h2>
+            <h2>2. Selecciona el tipo de regresión</h2>
             <div class="tipos">
                 <button class="tipo-btn activo" onclick="seleccionar('lineal', this)">Lineal</button>
                 <button class="tipo-btn" onclick="seleccionar('cuadratica', this)">Cuadrática</button>
                 <button class="tipo-btn" onclick="seleccionar('exponencial', this)">Exponencial</button>
             </div>
             <input type="hidden" id="tipo" value="lineal">
-        </div>
-
-        <!-- Ingreso de datos -->
-        <div class="card">
-            <h2>2. Ingresa los datos</h2>
-            <div id="datos">
-                <div class="fila-dato">
-                    <input type="number" step="any" placeholder="t" class="t-input">
-                    <input type="number" step="any" placeholder="Y" class="y-input">
-                </div>
-                <div class="fila-dato">
-                    <input type="number" step="any" placeholder="t" class="t-input">
-                    <input type="number" step="any" placeholder="Y" class="y-input">
-                </div>
-            </div>
-            <button class="btn-agregar" onclick="agregarFila()">+ Agregar fila</button>
-
-            <label>Valor de t para proyectar:</label>
-            <input type="number" step="any" id="t_proyectar" placeholder="Ej: 6">
-
             <button onclick="calcular()">Calcular regresión</button>
         </div>
 
         <!-- Resultados -->
         <div class="card oculto" id="seccion-resultados">
             <h2>3. Resultados</h2>
+            <div id="contenedor-tabla"></div>
             <div class="resultado">
                 <pre id="texto-resultado"></pre>
             </div>
@@ -87,30 +92,31 @@
         function agregarFila() {
             const div = document.createElement('div');
             div.className = 'fila-dato';
-            div.innerHTML = `<input type="number" step="any" placeholder="t" class="t-input">
+            div.innerHTML = `<input type="number" step="any" placeholder="X" class="x-input">
                              <input type="number" step="any" placeholder="Y" class="y-input">`;
             document.getElementById('datos').appendChild(div);
         }
 
         async function calcular() {
             const tipo = document.getElementById('tipo').value;
-            const t_vals = [...document.querySelectorAll('.t-input')].map(i => parseFloat(i.value)).filter(v => !isNaN(v));
+            const x_vals = [...document.querySelectorAll('.x-input')].map(i => parseFloat(i.value)).filter(v => !isNaN(v));
             const y_vals = [...document.querySelectorAll('.y-input')].map(i => parseFloat(i.value)).filter(v => !isNaN(v));
-            const t_proyectar = parseFloat(document.getElementById('t_proyectar').value);
+            const x_proyectar = parseFloat(document.getElementById('x_proyectar').value);
 
-            if (t_vals.length < 2) { alert('Ingresa al menos 2 pares de datos.'); return; }
-            if (isNaN(t_proyectar)) { alert('Ingresa un valor de t para proyectar.'); return; }
+            if (x_vals.length < 2) { alert('Ingresa al menos 2 pares de datos.'); return; }
+            if (isNaN(x_proyectar)) { alert('Ingresa un valor de X para proyectar.'); return; }
 
             const res = await fetch('/calcular', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ tipo, t_vals, y_vals, t_proyectar })
+                body: JSON.stringify({ tipo, x_vals, y_vals, x_proyectar })
             });
             const data = await res.json();
 
             if (data.error) { alert('Error: ' + data.error); return; }
 
             document.getElementById('texto-resultado').textContent = data.texto;
+            document.getElementById('contenedor-tabla').innerHTML = data.tabla;
             document.getElementById('grafica').src = 'data:image/png;base64,' + data.grafica;
             document.getElementById('seccion-resultados').classList.remove('oculto');
         }

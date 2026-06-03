@@ -16,18 +16,18 @@ def ingresar_datos():
             break
         except ValueError:
             print("  ⚠ Ingresa un número entero.")
-    t_vals, y_vals = [], []
+    x_vals, y_vals = [], []
     for i in range(n):
         while True:
             try:
-                t = float(input(f"  Dato {i+1} → t: "))
+                x = float(input(f"  Dato {i+1} → X: "))
                 y = float(input(f"  Dato {i+1} → Y: "))
-                t_vals.append(t)
+                x_vals.append(x)
                 y_vals.append(y)
                 break
             except ValueError:
                 print("  ⚠ Ingresa un número válido.")
-    return t_vals, y_vals
+    return x_vals, y_vals
 
 def mostrar_ecuaciones(resultado):
     print("\n  SISTEMA DE ECUACIONES:")
@@ -47,16 +47,17 @@ def hacer_proyeccion(resultado, mod):
     print("\n  PROYECCIÓN:")
     while True:
         try:
-            t_nuevo = float(input("  Ingresa el valor de t a proyectar: "))
+            x_nuevo = float(input("  Ingresa el valor de X a proyectar: "))
             break
         except ValueError:
             print("  ⚠ Ingresa un número válido.")
-    y_proj = mod.proyectar(resultado, t_nuevo)
-    print(f"  Para t = {t_nuevo}  →  Y ≈ {y_proj:.6f}")
+    y_proj = mod.proyectar(resultado, x_nuevo)
+    print(f"  Para X = {x_nuevo}  →  Y ≈ {y_proj:.6f}")
 
-def ejecutar(mod, t_vals, y_vals):
+def ejecutar(mod, x_vals, y_vals):
     try:
-        resultado = mod.calcular(t_vals, y_vals)
+        resultado = mod.calcular(x_vals, y_vals)
+        resultado["x"] = resultado.get("x", resultado.get("t", x_vals))
     except ValueError as e:
         print(f"\n  ⚠ Error: {e}")
         return
@@ -71,32 +72,36 @@ def menu():
     print("  [1] Regresión Lineal")
     print("  [2] Regresión Cuadrática")
     print("  [3] Regresión Exponencial")
+    print("  [4] Cambiar datos")
     print("  [0] Salir")
     print("─" * 40)
     return input("  Elige una opción: ").strip()
 
 def main():
-    t_vals, y_vals = None, None
+    print("\n" + "=" * 40)
+    print("   SISTEMA DE REGRESIÓN NUMÉRICA")
+    print("=" * 40)
+    
+    x_vals, y_vals = ingresar_datos()
+
     while True:
         opcion = menu()
         if opcion == "0":
             print("\n  ¡Hasta luego!\n")
             break
-        if opcion not in ("1", "2", "3"):
+        if opcion not in ("1", "2", "3", "4"):
             print("  ⚠ Opción inválida.")
             continue
-        if t_vals is not None:
-            reusar = input("\n  ¿Usar los mismos datos? (s/n): ").strip().lower()
-            if reusar != "s":
-                t_vals, y_vals = ingresar_datos()
-        else:
-            t_vals, y_vals = ingresar_datos()
+        if opcion == "4":
+            x_vals, y_vals = ingresar_datos()
+            continue
+
         if opcion == "1":
-            ejecutar(lineal, t_vals, y_vals)
+            ejecutar(lineal, x_vals, y_vals)
         elif opcion == "2":
-            ejecutar(cuadratica, t_vals, y_vals)
+            ejecutar(cuadratica, x_vals, y_vals)
         elif opcion == "3":
-            ejecutar(exponencial, t_vals, y_vals)
+            ejecutar(exponencial, x_vals, y_vals)
         input("\n  Presiona Enter para continuar...")
 
 if __name__ == "__main__":
